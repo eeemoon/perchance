@@ -1,3 +1,3 @@
 # perchance
 
-Unofficial Python API for Perchance.org.
+Unofficial Python API for Perchance.
