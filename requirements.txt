@@ -1,0 +1,2 @@
+aiohttp==0.0.1
+playwright==0.0.1

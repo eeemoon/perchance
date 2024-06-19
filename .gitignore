@@ -1,0 +1,15 @@
+# tests
+test/
+test.py
+
+# python folders and files
+__pycache__/
+venv/
+*.pyc
+dist/
+
+# ide files
+.vscode/
+
+# utils
+git-filter-repo
