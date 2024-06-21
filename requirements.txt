@@ -1,2 +1,2 @@
-aiohttp==0.0.1
-playwright==0.0.1
+aiohttp==3.9.5
+playwright==1.44.0
