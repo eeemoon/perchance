@@ -6,7 +6,7 @@ class timeout:
         self._exc = exc or TimeoutError()
         self._timeout = time.time() + seconds
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> "timeout":
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
