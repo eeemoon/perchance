@@ -14,5 +14,6 @@ include = ["pyproject.toml", "LICENSE"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
+aiofiles = "^23.2.1"
 aiohttp = "^3.9.5"
 playwright = "^1.44.0"
