@@ -27,6 +27,12 @@ class TextGenerator(AIGenerator):
 
     BASE_URL = "https://text-generation.perchance.org/api"
 
+    def __init__(self) -> None:
+        super().__init__()
+
+        self._lock: asyncio.Lock = asyncio.Lock()
+        self.is_generating: bool = False
+
     @classmethod
     async def _fetch_key(cls) -> str:
         try:
@@ -85,48 +91,52 @@ class TextGenerator(AIGenerator):
         start_with: `str` | `None`
             Text to start generation with.
         """
-        await self.refresh()
+        async with self._lock:
+            await self.refresh()
 
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                TextGenerator.BASE_URL + '/generate',
-                params={
-                    'userKey': self._key,
-                    '__cacheBust': random.random(),
-                    'requestId': f"aiTextCompletion{random.randint(0, 2**30)}"
-                },
-                json={
-                    'generatorName': 'ai-text-generator',
-                    'instruction': prompt,
-                    'instructionTokenCount': 1,
-                    'startWith': start_with or '',
-                    'startWithTokenCount': 1,
-                    'stopSequences': []
-                }
-            ) as response:
-                if not response.ok:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    TextGenerator.BASE_URL + '/generate',
+                    params={
+                        'userKey': self._key,
+                        '__cacheBust': random.random(),
+                        'requestId': f"aiTextCompletion{random.randint(0, 2**30)}"
+                    },
+                    json={
+                        'generatorName': 'ai-text-generator',
+                        'instruction': prompt,
+                        'instructionTokenCount': 1,
+                        'startWith': start_with or '',
+                        'startWithTokenCount': 1,
+                        'stopSequences': []
+                    }
+                ) as response:
+                    if not response.ok:
+                        try:
+                            body = await response.json(content_type=None)
+                            status = body['status']
+                        except Exception:
+                            raise errors.ConnectionError()
+
+                        if status == 'invalid_key':
+                            raise errors.AuthError()
+                        elif status == 'invalid_data':
+                            raise errors.BadRequestError()
+                        else:
+                            raise errors.ConnectionError()
+
                     try:
-                        body = await response.json(content_type=None)
-                        status = body['status']
+                        self.is_generating = True
+
+                        async for data_chunk in response.content.iter_any():
+                            for line in data_chunk.decode().split('\n\n'):
+                                if len(line) == 0:
+                                    continue
+                                
+                                data: dict = json.loads(line[5:])
+                                yield data['text']
                     except Exception:
                         raise errors.ConnectionError()
-
-                    if status == 'invalid_key':
-                        raise errors.AuthError()
-                    elif status == 'invalid_data':
-                        raise errors.BadRequestError()
-                    else:
-                        raise errors.ConnectionError()
-                
-                try:
-                    async for data_chunk in response.content.iter_any():
-                        for line in data_chunk.decode().split('\n\n'):
-                            if len(line) == 0:
-                                continue
-
-                            data: dict = json.loads(line[5:])
-                            yield data['text']
-                except Exception:
-                    raise errors.ConnectionError()
-            
-                            
+                    finally:
+                        self.is_generating = False
+                    
