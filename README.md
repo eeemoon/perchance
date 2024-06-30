@@ -1,7 +1,6 @@
 # perchance
 [![pypi](https://img.shields.io/pypi/v/perchance)](https://pypi.org/project/perchance)
 [![python](https://img.shields.io/badge/python-3.10-blue)](https://www.python.org/downloads)
-[![CodeFactor](https://www.codefactor.io/repository/github/eeemoon/perchance/badge)](https://www.codefactor.io/repository/github/eeemoon/perchance)
 [![BuyMeACoffee](https://img.shields.io/badge/support-yellow)](https://www.buymeacoffee.com/eeemoon)
 
 Unofficial Python API for [Perchance](https://perchance.org).
